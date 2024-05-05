@@ -1,12 +1,8 @@
 import express from "express";
 import morgan from "morgan";
 import path from "path";
-import {
-  signIn,
-  signInValidityChain,
-  signUp,
-  signUpValidityChain,
-} from "./modules/auth";
+import { signInValidityChain, signUpValidityChain } from "./modules/auth";
+import { signIn, signUp } from "./handlers/userHandler";
 
 const app = express();
 

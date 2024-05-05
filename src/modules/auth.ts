@@ -1,4 +1,7 @@
 import { checkSchema, validationResult } from "express-validator";
+import { UserMainData } from "../types/user";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 export const signUpValidityChain = (req, res, next) => {
   checkSchema(
@@ -14,22 +17,13 @@ export const signUpValidityChain = (req, res, next) => {
         //   isLength: { options: { min: 8 } },
       },
       email: { exists: true, isEmail: true },
+      firstName: { exists: true, isString: true },
+      lastName: { optional: true, isString: true },
     },
     ["body"]
   )
     .run(req)
     .then(() => next());
-};
-
-export const signUp = (req, res, next) => {
-  console.log("Signup function called");
-  const result = validationResult(req);
-
-  if (result.isEmpty()) {
-    res.json({ message: "Ok" });
-  } else {
-    res.json({ message: result });
-  }
 };
 
 export const signInValidityChain = (req, res, next) => {
@@ -52,12 +46,15 @@ export const signInValidityChain = (req, res, next) => {
     .then(() => next()); // may include limited number of charachters
 };
 
-export const signIn = (req, res, next) => {
-  const result = validationResult(req);
+export const createJWT = (data: UserMainData): string => {
+  const token = jwt.sign(data, process.env.JWT_SECRET);
+  return token;
+};
 
-  if (result.isEmpty()) {
-    res.json({ message: "Ok" });
-  } else {
-    res.json({ message: result });
-  }
+export const comparePasswords = (password: string, hash: string): boolean => {
+  return bcrypt.compare(password, hash);
+};
+
+export const hashPassword = (password: string): string => {
+  return bcrypt.hash(password, 5);
 };
