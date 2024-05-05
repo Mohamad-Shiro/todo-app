@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// schema.prisma
+
+model User {
+  id                 String   @id @default(uuid())
+  createdAt          DateTime @default(now())
+  username           String   @unique
+  password           String
+  firstName          String
+  lastName           String?
+  email              String   @unique
+  profilePicture     String?  @default("https://placehold.co/100")
+  deviceSyncSettings String?
+
+  groups Group[]
+  lists  List[]
+  tasks  Task[]
+  tags   Tag[]
+  // focusedSessions    FocusedSession[]
+}
+
+model Group {
+  id     String  @id @default(uuid())
+  title  String
+  icon   String?
+  lists  List[]
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
+}
+
+model List {
+  id      String  @id @default(uuid())
+  title   String
+  icon    String?
+  
+  tasks   Task[]
+  
+  user    User    @relation(fields: [userId], references: [id])
+  userId  String
+  Group   Group?  @relation(fields: [groupId], references: [id])
+  groupId String?
+}
+
+model Task {
+  id                          String   @id @default(uuid())
+  title                       String
+  description                 String?
+  createdTime                 DateTime @default(now())
+  lastUpdatedTime             DateTime @default(now())
+  totalFocusedTime            Int?
+  currentTimerSessionDuration Int?
+  currentTimerPassedTime      Int?
+
+  TagsOnTasks TagsOnTasks[]
+
+  list   List    @relation(fields: [listId], references: [id])
+  listId String
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
+}
+
+model Tag {
+  id    String @id @default(uuid())
+  name  String @unique
+  color String @default("#000")
+
+  TagsOnTasks TagsOnTasks[]
+
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
+}
+
+model TagsOnTasks {
+  task   Task   @relation(fields: [taskId], references: [id])
+  taskId String
+
+  tag   Tag    @relation(fields: [tagId], references: [id])
+  tagId String
+
+  assignedAt DateTime @default(now())
+
+  @@id([taskId, tagId])
+}
+
+// model FocusedSession {
+//   id                   String    @id @default(auto()) @map("_id") @db.ObjectId
+//   createdTime          DateTime  @default(now())
+//   completedTime        DateTime?
+//   initialFocusDuration Int
+//   assignedTaskName     String
+//   task                 Task      @relation(fields: [taskId], references: [id])
+//   taskId               String    @db.ObjectId
+//   user                 User      @relation(fields: [userId], references: [id])
+//   userId               String    @db.ObjectId
+// }
